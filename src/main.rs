@@ -68,7 +68,7 @@ struct Model {
 }
 
 fn model(app: &App) -> Model {
-    app.new_window().view(view).key_pressed(key_pressed).build().unwrap();
+    app.new_window().view(view).key_pressed(key_pressed).mouse_wheel(mouse_wheel).build().unwrap();
 
     let ball = Ball {
         initial_position: pt2(0.0, 0.0),
@@ -91,17 +91,31 @@ fn model(app: &App) -> Model {
     }
 }
 
+
+fn mouse_wheel(app: &App, model: &mut Model, delta: MouseScrollDelta, phase: TouchPhase) {
+    let inc: f32 = match delta {
+        MouseScrollDelta::LineDelta(_, y) => y,             // Vertical scroll lines
+        MouseScrollDelta::PixelDelta(pos) => pos.y as f32,  // Vertical scroll pixels
+    };
+
+    model.shape.rotation += inc*0.01;
+}
+
 fn key_pressed(app: &App, model: &mut Model, key: Key) {
-    let step: f32 = 0.05;
+    let step: f32 = 1.0;
     if key.eq(&Key::Right) {
-        model.shape.rotation += step;
+        model.shape.center.x += step;
     } else if key.eq(&Key::Left) {
-        model.shape.rotation -= step;
+        model.shape.center.x -= step;
+    } else if key.eq(&Key::Up) {
+        model.shape.center.y += step;
+    } else if key.eq(&Key::Down) {
+        model.shape.center.y -= step;
     }
 }
 
 fn update(_app: &App, model: &mut Model, _update: Update) {
-    model.shape = generate_ngon(model.shape.sides, 200.0, pt2(0.0, 0.0), model.shape.rotation, 0.9);
+    model.shape = generate_ngon(model.shape.sides, 200.0, model.shape.center, model.shape.rotation, 0.9);
 
     let ball = &mut model.ball;
     let shape = &model.shape;
